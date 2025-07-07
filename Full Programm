@@ -1,0 +1,271 @@
+#include
+#include
+#include
+#include
+#include
+#include
+#include
+
+using namespace std;
+
+class StringSet {
+vector words;
+
+public:
+StringSet() {}
+
+StringSet(string filename) {
+    ifstream file(filename);
+    if (!file) {
+        cout << "The file does not exist!" << endl;
+        return;
+    }
+    string word;
+    while (file >> word) {
+        string result = "";
+        for (char chr : word) {
+            if (isalpha(chr)) {
+                result += tolower(chr);
+            }
+        }
+        if (!result.empty()) {
+            words.push_back(result);
+        }
+    }
+}
+
+StringSet(string input, bool isFile) {
+    if (isFile) {
+        ifstream file(input);
+        if (!file) {
+            cout << "Invalid file. Please enter a valid file!" << endl;
+            return;
+        }
+        string word;
+        while (file >> word) {
+            words.push_back(word);
+        }
+    } else {
+        istringstream stream(input);
+        string word;
+        while (stream >> word) {
+            string result = "";
+            for (char chr : word) {
+                if (isalpha(chr)) {
+                    result += tolower(chr);
+                }
+            }
+            if (!result.empty()) {
+                words.push_back(result);
+            }
+        }
+    }
+}
+
+void add(string word) {
+    string cleaned_word = "";
+    for (char chr : word) {
+        if (isalpha(chr)) {
+            cleaned_word += tolower(chr);
+        }
+    }
+    if (!cleaned_word.empty()) {
+        words.push_back(cleaned_word);
+    } else {
+        cout << "Invalid word, it contains no letters!" << endl;
+    }
+}
+
+void remove(string word) {
+    string cleaned_word = "";
+    for (char chr : word) {
+        if (isalpha(chr)) {
+            cleaned_word += tolower(chr);
+        }
+    }
+    auto it = find(words.begin(), words.end(), cleaned_word);
+    if (it != words.end()) {
+        words.erase(it);
+        cout << "Done removing" << endl;
+    } else {
+        cout << "This word doesn't exist" << endl;
+    }
+}
+
+void clear() {
+    words.clear();
+    cout << "Done clearing, the vector is empty now!" << endl;
+}
+
+int num_size() const {
+    return words.size();
+}
+
+void display() const {
+    if (!words.empty()) {
+        for (auto word : words) {
+            cout << word << " ";
+        }
+        cout << endl;
+    } else {
+        cout << "The vector is empty" << endl;
+    }
+}
+
+StringSet operator+(const StringSet& other) const {
+    StringSet union_set = *this;
+    union_set.words.insert(union_set.words.end(), other.words.begin(), other.words.end());
+    return union_set;
+}
+
+StringSet operator*(const StringSet& other) const {
+    StringSet intersection_set;
+    for (const auto& word : words) {
+        if (find(other.words.begin(), other.words.end(), word) != other.words.end()) {
+            intersection_set.add(word);
+        }
+    }
+    return intersection_set;
+}
+
+double similarity(const StringSet& other) const {
+    double inter_count = 0.0;
+    for (const auto& word : words) {
+        if (find(other.words.begin(), other.words.end(), word) != other.words.end()) {
+            inter_count++;
+        }
+    }
+    int Q = words.size();
+    int D = other.words.size();
+    return inter_count / (sqrt(static_cast<double>(Q)) * sqrt(static_cast<double>(D)));
+}
+};
+
+int main() {
+string input;
+int choice;
+StringSet set1, set2;
+
+while (true) {
+    cout << "1. Load two files" << endl;
+    cout << "2. Load two strings" << endl;
+    cout << "3. Exit the program!" << endl;
+    cout << "Enter your choice: ";
+    cin >> choice;
+
+    if (choice == 1) {
+        string file1, file2;
+        while (true) {
+            cout << "Enter the first file name: ";
+            cin >> file1;
+            set1 = StringSet(file1);
+            if (set1.num_size() > 0) {
+                break;
+            } else {
+                cout << "Invalid file. Please try again!" << endl;
+            }
+        }
+
+        while (true) {
+            cout << "Enter the second file name: ";
+            cin >> file2;
+            set2 = StringSet(file2);
+            if (set2.num_size() > 0) {
+                break;
+            } else {
+                cout << "Invalid file. Please try again!" << endl;
+            }
+        }
+        break;
+
+    } else if (choice == 2) {
+        string str1, str2;
+        cout << "Enter the first string: ";
+        cin.ignore();
+        getline(cin, str1);
+        cout << "Enter the second string: ";
+        getline(cin, str2);
+
+        if (!str1.empty() && !str2.empty()) {
+            set1 = StringSet(str1, false);
+            set2 = StringSet(str2, false);
+            break;
+        } else {
+            cout << "Both strings must be non-empty. Please try again!" << endl;
+        }
+    } else if (choice == 3) {
+        cout << "Thanks for using our program!" << endl;
+        return 0;
+    } else {
+        cout << "Invalid choice, please try again!" << endl;
+    }
+}
+
+while (true) {
+    cout << "\nChoose an operation:" << endl;
+    cout << "1. Display the first set" << endl;
+    cout << "2. Display the second set" << endl;
+    cout << "3. Add a word to the first set" << endl;
+    cout << "4. Add a word to the second set" << endl;
+    cout << "5. Remove a word from the first set" << endl;
+    cout << "6. Perform union with the second set" << endl;
+    cout << "7. Perform intersection with the second set" << endl;
+    cout << "8. Calculate similarity with the second set" << endl;
+    cout << "9. Return to the main menu" << endl;
+    cout << "Enter your choice: ";
+    cin >> choice;
+
+    switch (choice) {
+        case 1:
+            set1.display();
+            break;
+        case 2:
+            set2.display();
+            break;
+        case 3: {
+            string word;
+            cout << "Enter the word to add to the first set: ";
+            cin >> word;
+            set1.add(word);
+            break;
+        }
+        case 4: {
+            string word;
+            cout << "Enter the word to add to the second set: ";
+            cin >> word;
+            set2.add(word);
+            break;
+        }
+        case 5: {
+            string word;
+            cout << "Enter the word to remove from the first set: ";
+            cin >> word;
+            set1.remove(word);
+            break;
+        }
+        case 6: {
+            StringSet union_set = set1 + set2;
+            cout << "Union of the sets: ";
+            union_set.display();
+            break;
+        }
+        case 7: {
+            StringSet intersection_set = set1 * set2;
+            cout << "Intersection of the sets: ";
+            intersection_set.display();
+            break;
+        }
+        case 8: {
+            double similarity = set1.similarity(set2);
+            cout << "Similarity between the sets: " << similarity << endl;
+            break;
+        }
+        case 9:
+            return main();
+        default:
+            cout << "Invalid choice, please try again!" << endl;
+    }
+}
+
+return 0;
+}
